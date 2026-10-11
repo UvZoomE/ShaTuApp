@@ -36,12 +36,11 @@ public class ShiftBits extends Objective {
         int shiftLength = example.getShiftLength();
         boolean shiftRight = example.isShiftRight();
         int bitLength = example.getBitLength();
-        String result = example.getResult();
-
         String expectedResult = bitShiftFunction(operand,
                 shiftLength,
                 shiftRight,
                 bitLength);
+        int displacedBits = Math.min(shiftLength, bitLength);
 
         StepCompletionReply stepReply = new StepCompletionReply();
         stepReply.setCorrectAnswer(expectedResult);
@@ -56,12 +55,14 @@ public class ShiftBits extends Objective {
 
         Hint hintOne = new Hint();
         hintOne.setId(0);
-        String hintText = "There will be " + shiftLength + " zeros on the left";
+        String hintText = "There will be " + displacedBits + " zeros on the "
+                + (shiftRight ? "left" : "right");
         hintOne.setText(hintText);
 
         Hint hintTwo = new Hint();
         hintTwo.setId(1);
-        hintText = "Remove " + shiftLength + " bits from the right";
+        hintText = "Remove " + displacedBits + " bits from the "
+                + (shiftRight ? "right" : "left");
         hintTwo.setText(hintText);
 
         Step step = completion.getStep();
@@ -110,6 +111,7 @@ public class ShiftBits extends Objective {
         BitShiftStep substep = gson.fromJson(jsonData, BitShiftStep.class);
 
         int bitLength = substep.getBitLength();
+        validateBitLength(bitLength);
 
         String operand = generateInputString(bitLength);
         int shiftLength = new Random().nextInt(bitLength);
@@ -163,28 +165,39 @@ public class ShiftBits extends Objective {
      * Performs a bit shift (left or right) on a binary string operand.
      *
      * @param operand     The binary string to be shifted.
-     * @param shiftLength The number of positions to shift the bits.
+     * @param shiftLength The nonnegative number of positions to shift the bits.
      * @param bitLength   The length of the resulting binary string.
      * @param shiftRight  If true, performs a right shift; if false, performs a
      *                    left shift.
-     * @return The binary string result after shifting.
+     * @return A binary string of exactly bitLength bits after shifting.
      */
-    private String bitShiftFunction(String operand, int shiftLength, boolean shiftRight, int bitLength) {
-        // Convert the binary string to a long integer
-        String tempOperand = operand.replaceAll("\\s", "");
-        long intOperand = Long.parseLong(tempOperand, 2);
-
-        // Perform the shift
-        long shiftedOperand;
-        if (shiftRight) {
-            shiftedOperand = intOperand >>> shiftLength;
-        } else {
-            shiftedOperand = intOperand << shiftLength;
+    String bitShiftFunction(String operand, int shiftLength, boolean shiftRight, int bitLength) {
+        validateBitLength(bitLength);
+        if (shiftLength < 0) {
+            throw new IllegalArgumentException("shiftLength must not be negative");
+        }
+        if (operand == null) {
+            throw new IllegalArgumentException("operand must contain exactly " + bitLength + " binary digits");
         }
 
-        // Convert the result back to binary string
-        String binaryResult = formatResult(shiftedOperand, bitLength);
+        String bits = operand.replaceAll("\\s", "");
+        if (bits.length() != bitLength || !bits.matches("[01]+")) {
+            throw new IllegalArgumentException("operand must contain exactly " + bitLength + " binary digits");
+        }
 
-        return binaryResult;
+        long value = Long.parseLong(bits, 2);
+        long mask = (1L << bitLength) - 1;
+        // A shift by the full width (or more) clears every bit. Java masks the
+        // shift count for long values, which would otherwise wrap at 64.
+        long shifted = shiftLength >= bitLength ? 0
+                : shiftRight ? value >>> shiftLength : value << shiftLength;
+
+        return formatResult(shifted & mask, bitLength);
+    }
+
+    private static void validateBitLength(int bitLength) {
+        if (bitLength != 4 && bitLength != 8 && bitLength != 16 && bitLength != 32) {
+            throw new IllegalArgumentException("bitLength must be 4, 8, 16, or 32");
+        }
     }
 }
