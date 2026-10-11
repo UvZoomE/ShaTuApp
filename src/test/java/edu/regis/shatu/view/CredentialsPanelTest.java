@@ -6,9 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.swing.SwingUtilities;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class CredentialsPanelTest {
+
+    @BeforeAll
+    static void setupHeadlessMode() {
+        System.setProperty("java.awt.headless", "true");
+    }
 
     @Test
     void signInStartsEmptyAndRequiresBothFields() throws Exception {
