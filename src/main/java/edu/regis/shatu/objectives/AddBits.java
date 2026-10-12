@@ -109,19 +109,37 @@ public class AddBits extends Objective {
 
         BitOpStep example = gson.fromJson(completion.getData(), BitOpStep.class);
 
-        String operand1 = example.getExample().getOperand1();
-        String operand2 = example.getExample().getOperand2();
         String result = example.getExample().getResult();
 
-        int m = 8; // this will be changed
-
-        String expectedResult = addBitsFunction(operand1, operand2, m);
+        String expectedResult = expectedResult(example.getExample());
 
         return genericComplete(expectedResult, result, KnowledgeComponentKind.ADD_BITS);
     }
 
     /**
-     * Performs binary addition modulo 2^256
+     * Return the correct answer for the given example: the sum of its two
+     * operands modulo 2^n, where n is the width of the problem.
+     *
+     * The width is the post size set in example(). If it is missing, the
+     * width of the operands is used, since they are padded to the problem size.
+     *
+     * @param example the example the student answered
+     * @return the expected answer as exactly n binary digits
+     */
+    private String expectedResult(BitOpExample example) {
+        String operand1 = example.getOperand1();
+        String operand2 = example.getOperand2();
+
+        int width = example.getPostSize();
+        if (width <= 0 && operand1 != null) {
+            width = operand1.length();
+        }
+
+        return addBitsFunction(operand1, operand2, width);
+    }
+
+    /**
+     * Performs binary addition modulo 2^m
      *
      * @param operand1 The binary string for operand 1.
      * @param operand2 The binary string for operand 2.
@@ -144,14 +162,14 @@ public class AddBits extends Objective {
         // Perform addition
         BigInteger sum = num1.add(num2);
 
-        // Calculate the result modulo 2^256
+        // Calculate the result modulo 2^m
         BigInteger modulo = new BigInteger("2").pow(m);
         BigInteger result = sum.mod(modulo);
 
         // Convert the result back to a binary string
         String resultBinary = result.toString(2);
 
-        // Ensure the binary string has 256 bits (pad with leading zeros if necessary)
+        // Ensure the binary string has m bits (pad with leading zeros if necessary)
         while (resultBinary.length() < m) {
             resultBinary = "0" + resultBinary;
         }
