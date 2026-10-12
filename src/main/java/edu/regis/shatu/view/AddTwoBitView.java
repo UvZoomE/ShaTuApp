@@ -49,9 +49,10 @@ import edu.regis.shatu.model.aol.TutoringMode;
 public class AddTwoBitView extends UserRequestView implements KeyListener {
 
     /**
-     * The modulo value for addition of binary numbers.
+     * The width of the current problem. Addition is modulo 2^m. Updated from
+     * each new example the tutor sends.
      */
-    private final int m = 8; // will be changed and dynamically updated
+    private int m = 8;
 
     private String binary1 = "";
     private String binary2 = "";
@@ -322,6 +323,12 @@ public class AddTwoBitView extends UserRequestView implements KeyListener {
                 try {
                     binary1 = example.getExample().getOperand1();
                     binary2 = example.getExample().getOperand2();
+
+                    if (example.getExample().getPostSize() > 0) {
+                        m = example.getExample().getPostSize();
+                    }
+                    instructionLabel.setText("Add two binary numbers using modulo 2^" + m + " addition");
+
                     result = calculateModulo(binary1, binary2);
                     checkButton.setEnabled(true);
                     responseTextArea.setEnabled(true);
