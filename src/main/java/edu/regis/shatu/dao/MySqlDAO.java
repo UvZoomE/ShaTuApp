@@ -202,19 +202,14 @@ public abstract class MySqlDAO {
     public void delete(String column, Object key) throws NonRecoverableException {
         String stmt = String.format("DELETE FROM %s WHERE %s = ?", this.table, column);
 
-        Connection conn;
-        PreparedStatement prepstmt = null;
-        try {
-            conn = DriverManager.getConnection(URL);
-            prepstmt = conn.prepareStatement(stmt);
+        try (Connection conn = DriverManager.getConnection(URL);
+             PreparedStatement prepstmt = conn.prepareStatement(stmt)) {
 
-            prepstmt = sqlTypeCoerce(key, prepstmt);
+            sqlTypeCoerce(key, prepstmt);
 
             prepstmt.executeUpdate();
         } catch (SQLException e) {
             throw new NonRecoverableException(this.table + "-DAO-ERR-3" + e.toString(), e);
-        } finally {
-            close(prepstmt);
         }
     }
 
@@ -230,13 +225,11 @@ public abstract class MySqlDAO {
     public boolean exists(String keyColumn, Object keyValue) throws NonRecoverableException {
 
         String stmt = String.format("SELECT %s FROM %s WHERE %s = ?", this.primaryKey, this.table, keyColumn);
-        Connection conn;
-        PreparedStatement prepstmt = null;
-        try {
-            conn = DriverManager.getConnection(URL);
-            prepstmt = conn.prepareStatement(stmt);
 
-            prepstmt = sqlTypeCoerce(keyValue, prepstmt);
+        try (Connection conn = DriverManager.getConnection(URL);
+             PreparedStatement prepstmt = conn.prepareStatement(stmt)) {
+
+            sqlTypeCoerce(keyValue, prepstmt);
 
             ResultSet result = prepstmt.executeQuery();
 
@@ -244,8 +237,6 @@ public abstract class MySqlDAO {
 
         } catch (SQLException e) {
             throw new NonRecoverableException(this.table + "-DAO-ERR-10" + e.toString(), e);
-        } finally {
-            close(prepstmt);
         }
     }
 

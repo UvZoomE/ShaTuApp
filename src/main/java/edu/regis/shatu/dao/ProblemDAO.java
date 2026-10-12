@@ -104,7 +104,6 @@ public class ProblemDAO extends MySqlDAO implements ProblemSvc {
         PreparedStatement stmt = null;
 
         try {
-            conn = DriverManager.getConnection(URL);
             stmt = conn.prepareStatement(sql);
 
             stmt.setInt(1, id);
