@@ -156,6 +156,7 @@ public class RotateView extends UserRequestView implements KeyListener {
         rotateAmount = new ButtonGroup();
         rotateAmount.add(rotate7Bits);
         rotateAmount.add(rotate16Bits);
+        rotate16Bits.setEnabled(false);
 
         // Logic for radio buttons (selected/enabled)
         rotate7Bits.addActionListener(new ActionListener() {
@@ -183,8 +184,8 @@ public class RotateView extends UserRequestView implements KeyListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (shortProblem.isSelected()) {
+                    rotate7Bits.setSelected(true);
                     rotate16Bits.setEnabled(false);
-                    rotate16Bits.setSelected(false);
                 } else {
                     rotate16Bits.setEnabled(true);
                 }
@@ -240,8 +241,13 @@ public class RotateView extends UserRequestView implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ENTER && answerField.getText().equals("")) {
+        if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+            return;
+        }
+        if (answerField.getText().isBlank()) {
             JOptionPane.showMessageDialog(this, "Please provide an answer");
+        } else if (checkButton.isEnabled()) {
+            checkButton.doClick();
         }
     }
 
@@ -325,7 +331,7 @@ public class RotateView extends UserRequestView implements KeyListener {
         // DO_ONE & TEACH_ONE
         else {
             //Length Buttons
-            shortProblem.setEnabled(true);
+            shortProblem.setEnabled(!rotate16Bits.isSelected());
             longProblem.setEnabled(true);
             
             //Rotation type button
@@ -333,7 +339,7 @@ public class RotateView extends UserRequestView implements KeyListener {
             
             //Rotation amount buttons
             rotate7Bits.setEnabled(true);
-            rotate16Bits.setEnabled(true);
+            rotate16Bits.setEnabled(longProblem.isSelected());
             
             //Field answer
             answerField.setEnabled(true);

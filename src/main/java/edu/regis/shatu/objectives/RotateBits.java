@@ -28,12 +28,16 @@ public class RotateBits extends Objective {
     @Override
     public TutorReply example(TutoringSession session, String jsonData) {
         RotateStep example = gson.fromJson(jsonData, RotateStep.class);
+        if (example.getLength() != 16 && example.getLength() != 32) {
+            throw new IllegalArgumentException("Rotation problems must be 16 or 32 bits long");
+        }
 
         // Check if the data (bit string) is provided, if not, generate it
-        if (example.getData() == null || example.getData().isEmpty()) {
+        if (example.getData() == null || example.getData().isBlank()) {
             String generatedData = generateInputString(example.getLength());
             example.setData(generatedData);
         }
+        validateBits(example.getData(), example.getLength());
 
         return genericExample(example, StepSubType.ROTATE_BITS, ProblemType.ROTATE_BITS,
                 KnowledgeComponentKind.ROTATE_BITS, "Bits are rotated");
@@ -59,9 +63,10 @@ public class RotateBits extends Objective {
         int amount = example.getAmount();
         String data = example.getData();
 
-        String expectedResult = performBitRotation(data, amount);
+        String expectedResult = performBitRotation(data, amount, example.getLength());
 
-        String result = example.getUserResponse();
+        String result = example.getUserResponse() == null ? ""
+                : example.getUserResponse().replaceAll("\\s+", "");
 
         return genericComplete(expectedResult, result, KnowledgeComponentKind.ROTATE_BITS);
     }
@@ -71,19 +76,25 @@ public class RotateBits extends Objective {
      * comparison to user's answer.
      *
      * @param data
-     * @param amount
+     * @param amount Number of positions to rotate right; negative values wrap
+     *               around the width as well.
+     * @param length Expected number of bits in the problem.
      * @return result
      */
-    private String performBitRotation(String data, int amount) {
-        String fdata = data.replaceAll("\\s+", "");
-        int length = fdata.length();
-        amount = amount % length;
-
-        if (amount < 0) {
-            amount = length + amount;
-        }
-        String result = fdata.substring(length - amount) + fdata.substring(0, length - amount);
-        return result;
+    static String performBitRotation(String data, int amount, int length) {
+        String bits = validateBits(data, length);
+        int places = Math.floorMod(amount, length);
+        return bits.substring(length - places) + bits.substring(0, length - places);
     }
 
+    private static String validateBits(String data, int length) {
+        if (length <= 0 || data == null) {
+            throw new IllegalArgumentException("Rotation requires a nonempty binary string of the selected length");
+        }
+        String bits = data.replaceAll("\\s+", "");
+        if (bits.length() != length || !bits.matches("[01]+")) {
+            throw new IllegalArgumentException("Rotation requires a binary string of " + length + " bits");
+        }
+        return bits;
+    }
 }
