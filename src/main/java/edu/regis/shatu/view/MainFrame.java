@@ -140,36 +140,57 @@ public class MainFrame extends JFrame implements WindowListener {
 
     /**
      * Display the given model in the tutoring session view of this frame.
-     * 
-     * TODO: This method is doing too much. Figure out the best way to separate
-     * concerns. As a tentative example, see the logout method in this class.
      *
-     * @param model a TutoringSession model or null to logout.
+     * @param model a TutoringSession model.
      */
     public void setModel(TutoringSession model) {
-        this.model = model;
-   
-        Account account;
-   
-        if (model == null) { // signing out
-            account = new Account();
-        } else {
-            // Use the copy constructor to ensure session model is not overwritten
-            account = new Account(model.getStudent().getAccount());
+        if (model == null) {
+            logout();
+            return;
         }
-            
+
+        this.model = model;
+
+        // Distribute the session model to session-specific views
         tutorSessionView.setModel(model); 
+        dashboardPanel.setModel(model);
+        
+        // Extract and distribute the account model to account-specific views
+        Account account = new Account(model.getStudent().getAccount());
+        setAccountModels(account);
+        
+        displayView(ViewName.TUTOR);
+    }
+
+    /**
+     * Handles user logout functionality, clears session data, and resets views.
+     */
+    public void logout() {
+        this.model = null;
+        
+        // Clear session views
+        tutorSessionView.setModel(null); 
+        dashboardPanel.setModel(null);
+        
+        // Reset account views with a fresh, empty Account object
+        setAccountModels(new Account());
+        
+        // Clear any lingering data in the UI text fields
+        updateAccountPanel.clearFields();
+        
+        displayView(ViewName.SPLASH);
+    }
+
+    /**
+     * Helper method to centralize the updating of all Account-related panels.
+     * 
+     * @param account the Account model to distribute
+     */
+    private void setAccountModels(Account account) {
         splashPanel.setModel(account);
         forgotPasswordPanel.setModel(account);
         resetPasswordPanel.setModel(account);
-        dashboardPanel.setModel(model);
         updateAccountPanel.setModel(account);
-        
-        if (model == null) { // Signed out
-            displayView(ViewName.SPLASH);
-        } else {
-            displayView(ViewName.TUTOR);
-        }
     }
 
     /**
@@ -276,27 +297,6 @@ public class MainFrame extends JFrame implements WindowListener {
     public void clearNewAccountPanel() {
         newAccountPanel.clearFields();
     }
-    
-//    /**
-//     * Handles user logout functionality and updates views and panels.
-//     * 
-//     * TODO: This is an example of how logging out could work so that this class'
-//     * setModel() does not have to handle this type of action. Determine the best
-//     * way to implement this. Use "Ctrl + /" to comment/uncomment this block.
-//     * 
-//     */
-//    public void logout() {
-//        tutorSessionView.setModel(null); 
-//        splashPanel.setModel(new Account());
-//        forgotPasswordPanel.setModel(new Account());
-//        resetPasswordPanel.setModel(new Account());
-//        dashboardPanel.setModel(null);
-//        updateAccountPanel.setModel(new Account());
-//        
-//        updateAccountPanel.clearFields();
-//        
-//        displayView(ViewName.SPLASH);
-//    }
 
     @Override
     public void windowOpened(WindowEvent e) {
