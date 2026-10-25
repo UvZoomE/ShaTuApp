@@ -87,36 +87,41 @@ public class ShaTuApp {
         
         System.out.println("Finished initializing");
         
-        // Create the server and then initialize the GUI client (see ntoes).
+        // Initialize the server and client separately
         try {
-            LOGGER.info(" Starting ShaTu Server (Tutoring Service)...");
-            // ToDo: Separate the initialization of client and server
-            // Start the socket server for the ShaTu tutor.
-            Thread serverThread = new Thread(new ShaTuServer(), "ShaTuServer");
-            serverThread.setDaemon(true);
-            serverThread.start();
-
-            waitForServerReady();
-                
-            LOGGER.info(" Server is running.");
-                
-            LOGGER.info(" Starting Client GUI...");
-
-            // Forces the creation of the MainFrame singleton, which has the
-            // side-effect of displaying the SplashPanel allowing the user to
-            // sign-in.
-            MainFrame.instance();      
-                
-            LOGGER.info("ShaTu Initialization successful.");
-                
+            startServer();
+            startClient();
         } catch (InterruptedException ex) {
-                Logger.getLogger(ShaTuApp.class.getName()).log(Level.SEVERE, null, ex);
-       // } catch (SecurityException e) {
-                // ToDo: Check this, I don't think we're still doing this.
-                // Hence, this data directory creation error cannot occur.
-         //   LOGGER.severe("Couldn't create Data directory in NetBeans Project.");
-          //  LOGGER.severe("Perhaps, try changing permissions.");
+            Logger.getLogger(ShaTuApp.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    /**
+     * Starts the backend ShaTu socket server as a daemon thread.
+     */
+    private static void startServer() throws InterruptedException {
+        LOGGER.info(" Starting ShaTu Server (Tutoring Service)...");
+        
+        Thread serverThread = new Thread(new ShaTuServer(), "ShaTuServer");
+        serverThread.setDaemon(true);
+        serverThread.start();
+
+        waitForServerReady();
+            
+        LOGGER.info(" Server is running.");
+    }
+
+    /**
+     * Initializes the GUI client and prompts the sign-in screen.
+     */
+    private static void startClient() {
+        LOGGER.info(" Starting Client GUI...");
+
+        // Forces the creation of the MainFrame singleton, which has the
+        // side-effect of displaying the SplashPanel allowing the user to sign-in.
+        MainFrame.instance();      
+            
+        LOGGER.info("ShaTu Initialization successful.");
     }
 
     /**
