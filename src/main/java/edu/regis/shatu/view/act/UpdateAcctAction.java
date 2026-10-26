@@ -78,9 +78,6 @@ public class UpdateAcctAction extends ShaTuGuiAction {
      * before allowing the user to commit any changes. This Account copy is
      * returned and contains the password that was entered.
      * 
-     * TODO: Determine if there is a more secure way of handling the way in which
-     * a user enters a password and how it's temporarily stored.
-     * 
      * @return an Account object that will be used for authentication and updating
      * if the account is verified
      */
@@ -97,9 +94,15 @@ public class UpdateAcctAction extends ShaTuGuiAction {
 
         if (option == JOptionPane.OK_OPTION) {
             accountCopy = new Account(MainFrame.instance().getAccount());
-            accountCopy.setPassword(
-                    UpdateAccountPanel.encryptSHA256(new String(passwordField.getPassword()))
-            );
+            char[] passwordChars = passwordField.getPassword();
+            try {
+                accountCopy.setPassword(
+                        UpdateAccountPanel.encryptSHA256(new String(passwordChars))
+                );
+            } finally {
+                // Securely clear the password character array from memory immediately after use
+                java.util.Arrays.fill(passwordChars, '\0');
+            }
         }
         else {
             accountCopy = null;
