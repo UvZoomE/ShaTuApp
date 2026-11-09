@@ -292,9 +292,8 @@ public class MainFrame extends JFrame implements WindowListener {
             
             JOptionPane.showMessageDialog(this, msg, "SignIn Error", JOptionPane.ERROR_MESSAGE);
 
-            // ToDo: What?
+            // Gracefully close the window instead of force-killing the JVM
             this.dispose();
-            System.exit(1);
         }
     }
     
@@ -397,7 +396,6 @@ public class MainFrame extends JFrame implements WindowListener {
 
     /**
      * Update the current model with any changes made in this frame's view.
-     * TODO: implement how to update the model
      */
     private void updateModel() {
         
