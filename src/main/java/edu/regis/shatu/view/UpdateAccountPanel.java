@@ -439,8 +439,10 @@ public class UpdateAccountPanel extends GPanel {
             CharBuffer charBuffer = CharBuffer.wrap(passwordChars);
             byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
             
-            // Generate the hash from the underlying byte array
-            byte[] hash = digest.digest(byteBuffer.array());
+            // Hash only the encoded bytes; the backing array may be larger
+            // than the encoded content (trailing zero padding).
+            digest.update(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining());
+            byte[] hash = digest.digest();
             
             StringBuilder hexString = new StringBuilder();
             for (int i = 0; i < hash.length; i++) {
