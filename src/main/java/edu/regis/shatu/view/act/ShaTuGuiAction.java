@@ -20,7 +20,9 @@ import javax.swing.ImageIcon;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import edu.regis.shatu.svc.TutorReply;
 import edu.regis.shatu.util.ImgFactory;
+import edu.regis.shatu.view.MainFrame;
 
 /**
  * Abstract root for all GUI actions in the ShaTu application.
@@ -72,5 +74,17 @@ public abstract class ShaTuGuiAction extends AbstractAction {
      */
     protected static final Gson getGsonPretty() {
         return gsonPretty;
+    }
+
+    /**
+     * If the tutor's reply carries a synced tutoring mode, apply it to the
+     * client's session so views read the up-to-date mode.
+     *
+     * @param reply the reply from the tutor
+     */
+    protected void applyTutoringMode(TutorReply reply) {
+        if (reply.getTutoringMode() != null && MainFrame.instance().getModel() != null) {
+            MainFrame.instance().getModel().setTutoringMode(reply.getTutoringMode());
+        }
     }
 }

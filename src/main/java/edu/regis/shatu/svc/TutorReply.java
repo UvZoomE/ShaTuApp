@@ -20,6 +20,8 @@ package edu.regis.shatu.svc;
  * 
  * @author rickb
  */
+import edu.regis.shatu.model.aol.TutoringMode;
+
 public class TutorReply {
     /**
      * Shown to the user when an ":ERR" reply arrives without a message.
@@ -37,6 +39,12 @@ public class TutorReply {
      * which this is a reply.
      */
     private String data = "";
+
+    /**
+     * Optional: the tutoring mode the server has synced for the student after
+     * handling this request, or null if the server did not change it.
+     */
+    private TutoringMode tutoringMode;
     
     /**
      * A reply from the tutor with an ERR status.
@@ -90,5 +98,13 @@ public class TutorReply {
         }
 
         return data.trim();
+    }
+
+    public TutoringMode getTutoringMode() {
+        return tutoringMode;
+    }
+
+    public void setTutoringMode(TutoringMode tutoringMode) {
+        this.tutoringMode = tutoringMode;
     }
 }

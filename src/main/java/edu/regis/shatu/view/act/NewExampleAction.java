@@ -123,6 +123,7 @@ public class NewExampleAction extends ShaTuGuiAction {
                     MainFrame.instance().displayError(reply.getErrorMessage());
                     break;
                 default:
+                    applyTutoringMode(reply);
                     //If the status was not an error, we can update the model and the
                     //view with the new task sent by the tutor
 

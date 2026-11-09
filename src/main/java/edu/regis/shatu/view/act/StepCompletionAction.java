@@ -131,6 +131,7 @@ public class StepCompletionAction extends ShaTuGuiAction {
                     break;
 
                 default:
+                    applyTutoringMode(reply);
                     PendingTask pendingTask = gson.fromJson(reply.getData(), PendingTask.class);
                     Task task = pendingTask.getTask();
                     // Task task = gson.fromJson(reply.getData(), Task.class);
