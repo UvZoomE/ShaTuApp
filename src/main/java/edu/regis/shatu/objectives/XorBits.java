@@ -12,13 +12,6 @@ import edu.regis.shatu.model.aol.ProblemType;
 import edu.regis.shatu.model.aol.StepSubType;
 import edu.regis.shatu.svc.TutorReply;
 
-import edu.regis.shatu.svc.StudentModelSvc;
-import edu.regis.shatu.svc.ServiceFactory;
-import edu.regis.shatu.model.StudentModelFieldKind;
-import edu.regis.shatu.err.NonRecoverableException;
-import edu.regis.shatu.model.aol.Assessment;
-import edu.regis.shatu.model.aol.AssessmentLevel;
-
 public class XorBits extends Objective {
 
     private static final int MAX_ASCII_SIZE = 20;
@@ -98,29 +91,6 @@ public class XorBits extends Objective {
         String result = example.getExample().getResult();
 
         String expectedResult = xorBitsFunction(operand1, operand2);
-
-        // Check if the answer is correct and advance the Assessment Level
-        if (expectedResult.equals(result)) {
-            try {
-                StudentModelSvc modelSvc = ServiceFactory.findStudentModelSvc();
-
-                // Retrieve the assessment for this specific knowledge component
-                Assessment assessment = studentModel.findAssessment(KnowledgeComponentKind.XOR_BITS.dbId());
-
-                // If they were in SEE_ONE (Not Started), advance them to DO_ONE (In Progress)
-                if (assessment.getAssessment() == AssessmentLevel.NOT_STARTED || assessment.getAssessment() == AssessmentLevel.VERY_LOW) {
-                    assessment.setAssessment(AssessmentLevel.IN_PROGRESS);
-                    modelSvc.updateAssessment(studentModel, assessment, StudentModelFieldKind.ASSESSMENT_LEVEL);
-                }
-
-                // Update their success count
-                assessment.incrementSuccessess();
-                modelSvc.updateAssessment(studentModel, assessment, StudentModelFieldKind.SUCCESSES);
-
-            } catch (NonRecoverableException ex) {
-                return createError("Failed to update database assessment", ex);
-            }
-        }
 
         return genericComplete(expectedResult, result, KnowledgeComponentKind.XOR_BITS);
     }
