@@ -23,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Random;
+import edu.regis.shatu.view.act.NewExampleAction;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
@@ -40,6 +41,7 @@ import edu.regis.shatu.model.StepCompletion;
 import edu.regis.shatu.model.aol.BitOpExample;
 import edu.regis.shatu.model.aol.BitOpStep;
 import edu.regis.shatu.model.aol.NewExampleRequest;
+import edu.regis.shatu.model.aol.PendingTask;
 import edu.regis.shatu.model.aol.ProblemType;
 import edu.regis.shatu.model.aol.StepSubType;
 import edu.regis.shatu.model.steps.Step;
@@ -162,8 +164,12 @@ public class ExclusiveOrView extends UserRequestView implements KeyListener {
         ActionListener selection = e -> {
             JRadioButton source = (JRadioButton) e.getSource();
             updateProblemSize(source);
-            // generateNewQuestion();
-            // TODO set up to use ShaTuTutor to generate new questions
+
+            // Trigger the ShaTuTutor backend to generate a new question
+            // matching the newly selected problem size.
+            if (NewExampleAction.instance() != null) {
+                NewExampleAction.instance().actionPerformed(null);
+            }
         };
 
         fourRadioButton.addActionListener(selection);
@@ -531,8 +537,24 @@ public class ExclusiveOrView extends UserRequestView implements KeyListener {
             thirtytwoRadioButton.setEnabled(true);
             responseTextArea.setEnabled(true);
         }
-    }    
-       
+    }
+
+    /**
+     * Re-apply the radio button enabled state whenever a new task is loaded,
+     * since the tutoring mode may have changed since the model was set.
+     */
+    @Override
+    public void setCurrentTask(PendingTask task) {
+        super.setCurrentTask(task);
+
+        if (model != null && model.getTutoringMode() != TutoringMode.SEE_ONE) {
+            fourRadioButton.setEnabled(true);
+            eightRadioButton.setEnabled(true);
+            sixteenRadioButton.setEnabled(true);
+            thirtytwoRadioButton.setEnabled(true);
+        }
+    }
+
     @Override
     public NewExampleRequest newRequest() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();

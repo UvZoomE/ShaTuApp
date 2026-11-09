@@ -796,9 +796,13 @@ public class ShaTuTutor implements TutorSvc {
                 return completeInfoMsgStep(completion);
 
             default:
-                currObjective = getCurrentObjectiveByProbelmType(convertStepToProblemType(step.getSubType()));
+                ProblemType pType = convertStepToProblemType(step.getSubType());
+                currObjective = getCurrentObjectiveByProbelmType(pType);
                 TutorReply reply = currObjective.completeStep(completion);
-                
+
+                // Sync the mode after the step is graded
+                syncSessionTutoringMode(pType);
+
                 if (step.getSubType() == StepSubType.ENCODE_ASCII) {
                     return handleEncodeAsciiCompletion(completion, reply);
                 }
@@ -1084,6 +1088,9 @@ public class ShaTuTutor implements TutorSvc {
                 : determineNextProblemType(studentModel);
 
         currObjective = getCurrentObjectiveByProbelmType(type);
+
+        // Sync the mode before generating the new example
+        syncSessionTutoringMode(type);
 
         // Use the existing method in Objective subclasses
         return currObjective.example(session, request.getData());
@@ -1486,5 +1493,26 @@ public class ShaTuTutor implements TutorSvc {
             + nextTask.getSteps().size()
             + " step(s); DB persistence path may be available"
         );
+    }
+
+    /**
+     * Dynamically updates the tutoring session's mode based on the student's
+     * assessment level for the current problem type.
+     */
+    private void syncSessionTutoringMode(ProblemType problemType) {
+        KnowledgeComponentKind kc = mapProblemTypeToKnowledgeComponent(problemType);
+        if (kc != null && studentModel != null && session != null) {
+            Assessment assessment = studentModel.findAssessment(kc.dbId());
+            if (assessment != null) {
+                if (assessment.getAssessment() == AssessmentLevel.IN_PROGRESS) {
+                    session.setTutoringMode(DO_ONE);
+                } else if (assessment.getAssessment() == AssessmentLevel.COMPLETED) {
+                    session.setTutoringMode(TEACH_ONE);
+                } else {
+                    session.setTutoringMode(SEE_ONE);
+                }
+                System.out.println("Session tutoring mode synced to: " + session.getTutoringMode() + " for " + problemType);
+            }
+        }
     }
 }
