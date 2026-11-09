@@ -22,6 +22,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -125,7 +130,14 @@ public class UpdateAccountPanel extends GPanel {
         model.setFirstName(fName.getText());
         model.setLastName(lName.getText());
         model.setSecurityQuestion(secQuestions.getSelectedIndex());
-        model.setSecurityAnswer(encryptSHA256(new String(secAnswer.getPassword())));
+        char[] answerChars = secAnswer.getPassword();
+        try {
+            // Use the new secure char[] method
+            model.setSecurityAnswer(encryptSHA256(answerChars));
+        } finally {
+            // Securely wipe the security answer from memory
+            Arrays.fill(answerChars, '\0');
+        };
     }
 
     /**
@@ -408,6 +420,46 @@ public class UpdateAccountPanel extends GPanel {
             return hexString.toString();
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Encrypt the given password securely using SHA-256 without creating 
+     * immutable String objects in memory.
+     *
+     * @param passwordChars the raw password character array
+     * @return a SHA-256 encrypted String
+     */
+    public static String encryptSHA256(char[] passwordChars) {
+        ByteBuffer byteBuffer = null;
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            
+            // Securely convert char[] to byte[] using UTF-8 encoding
+            CharBuffer charBuffer = CharBuffer.wrap(passwordChars);
+            byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
+            
+            // Generate the hash from the underlying byte array
+            byte[] hash = digest.digest(byteBuffer.array());
+            
+            StringBuilder hexString = new StringBuilder();
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+            
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex);
+        } finally {
+            // Securely wipe the byte buffer that holds the plaintext bytes in memory
+            if (byteBuffer != null && byteBuffer.hasArray()) {
+                Arrays.fill(byteBuffer.array(), (byte) 0);
+            }
         }
     }
 }

@@ -97,7 +97,7 @@ public class UpdateAcctAction extends ShaTuGuiAction {
             char[] passwordChars = passwordField.getPassword();
             try {
                 accountCopy.setPassword(
-                        UpdateAccountPanel.encryptSHA256(new String(passwordChars))
+                        UpdateAccountPanel.encryptSHA256(passwordChars)
                 );
             } finally {
                 // Securely clear the password character array from memory immediately after use
